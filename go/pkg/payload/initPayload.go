@@ -106,38 +106,46 @@ func prepareCommands() []Command {
 		Direction: "DESC",
 	}
 
+	weatherTelemetryKeys := []LatestValue{
+		{Type: "TIME_SERIES", Key: "airTemperature"},
+		{Type: "TIME_SERIES", Key: "airHumidity"},
+		{Type: "TIME_SERIES", Key: "barometricPressure"},
+		{Type: "TIME_SERIES", Key: "windSpeed"},
+		{Type: "TIME_SERIES", Key: "windDirectionSensor"},
+		{Type: "TIME_SERIES", Key: "rainGauge"},
+		{Type: "TIME_SERIES", Key: "uvIndex"},
+		{Type: "TIME_SERIES", Key: "lightIntensity"},
+		{Type: "TIME_SERIES", Key: "battery"},
+	}
+
+	deviceAttributeKeys := []LatestValue{
+		{Type: "ATTRIBUTE", Key: "latitude"},
+		{Type: "ATTRIBUTE", Key: "longitude"},
+		{Type: "ATTRIBUTE", Key: "altitude"},
+		{Type: "ATTRIBUTE", Key: "firmwareVersion"},
+		{Type: "ATTRIBUTE", Key: "hardwareVersion"},
+		{Type: "ATTRIBUTE", Key: "active"},
+	}
+
 	cmds := []Command{
-		// Command 1: All weather telemetry in one subscription
-		{Type: "ENTITY_DATA", CmdID: 1, Query: Query{
-			EntityFilter: deviceFilter,
-			PageLink:     PageLink{PageSize: 1, SortOrder: createdTimeSortOrder},
-			EntityFields: defaultEntityFields,
-			LatestValues: []LatestValue{
-				{Type: "TIME_SERIES", Key: "airTemperature"},
-				{Type: "TIME_SERIES", Key: "airHumidity"},
-				{Type: "TIME_SERIES", Key: "barometricPressure"},
-				{Type: "TIME_SERIES", Key: "windSpeed"},
-				{Type: "TIME_SERIES", Key: "windDirectionSensor"},
-				{Type: "TIME_SERIES", Key: "rainGauge"},
-				{Type: "TIME_SERIES", Key: "uvIndex"},
-				{Type: "TIME_SERIES", Key: "lightIntensity"},
-				{Type: "TIME_SERIES", Key: "battery"},
-			},
-		}},
-		// Command 2: Device attributes (location, firmware, etc.)
-		{Type: "ENTITY_DATA", CmdID: 2, Query: Query{
-			EntityFilter: deviceFilter,
-			PageLink:     PageLink{PageSize: 1, SortOrder: createdTimeSortOrder},
-			EntityFields: defaultEntityFields,
-			LatestValues: []LatestValue{
-				{Type: "ATTRIBUTE", Key: "latitude"},
-				{Type: "ATTRIBUTE", Key: "longitude"},
-				{Type: "ATTRIBUTE", Key: "altitude"},
-				{Type: "ATTRIBUTE", Key: "firmwareVersion"},
-				{Type: "ATTRIBUTE", Key: "hardwareVersion"},
-				{Type: "ATTRIBUTE", Key: "active"},
-			},
-		}},
+		// Command 1: All weather telemetry with live subscription
+		{Type: "ENTITY_DATA", CmdID: 1,
+			LatestCmd: &LatestCmd{Keys: weatherTelemetryKeys},
+			Query: Query{
+				EntityFilter: deviceFilter,
+				PageLink:     PageLink{PageSize: 1, SortOrder: createdTimeSortOrder},
+				EntityFields: defaultEntityFields,
+				LatestValues: weatherTelemetryKeys,
+			}},
+		// Command 2: Device attributes with live subscription
+		{Type: "ENTITY_DATA", CmdID: 2,
+			LatestCmd: &LatestCmd{Keys: deviceAttributeKeys},
+			Query: Query{
+				EntityFilter: deviceFilter,
+				PageLink:     PageLink{PageSize: 1, SortOrder: createdTimeSortOrder},
+				EntityFields: defaultEntityFields,
+				LatestValues: deviceAttributeKeys,
+			}},
 	}
 
 	cmds = append(cmds,
