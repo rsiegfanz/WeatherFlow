@@ -11,73 +11,80 @@ import (
 	"github.com/rsiegfanz/WeatherFlow/pkg/payload"
 )
 
-const url = "wss://thingsboard.bda-itnovum.com/api/ws"
+const wsURL = "wss://thingsboard.bda-itnovum.com/api/ws"
 
 type Client struct {
-	Token string
+	token string
+	conn  *websocket.Conn
 }
 
-func NewClient(token string) (*Client, error) {
-	return &Client{
-		Token: token,
-	}, nil
+func New(token string) *Client {
+	return &Client{token: token}
 }
 
-func (c *Client) Close() {}
+func (c *Client) Close() {
+	if c.conn != nil {
+		c.conn.WriteMessage(websocket.CloseMessage,
+			websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+		c.conn.Close()
+	}
+}
 
 func (c *Client) Connect() error {
-
-	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
-		return fmt.Errorf("connection error: %v", err)
+		return fmt.Errorf("connection error: %w", err)
 	}
-	defer conn.Close()
+	c.conn = conn
 
-	initPayload := payload.PrepareInitPayload(c.Token)
-
-	jsonData, err := json.Marshal(initPayload)
-	if err != nil {
-		return fmt.Errorf("JSON conversion error: %v", err)
+	if err := c.sendInitPayload(); err != nil {
+		return err
 	}
 
-	err = conn.WriteMessage(websocket.TextMessage, jsonData)
-	if err != nil {
-		return fmt.Errorf("send error: %v", err)
-	}
+	log.Println("Connected and subscribed")
 
-	log.Println("Initial message sent")
+	done := make(chan struct{})
+	go c.readMessages(done)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	done := make(chan struct{})
-	go c.readData(conn, done)
-
-	for {
-		select {
-		case <-done:
-			return nil
-		case <-interrupt:
-			log.Println("Closing connection")
-			err := conn.WriteMessage(websocket.CloseMessage,
-				websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			if err != nil {
-				return fmt.Errorf("error closing: %v", err)
-			}
-			return nil
-		}
+	select {
+	case <-done:
+		return nil
+	case <-interrupt:
+		log.Println("Interrupted, closing connection")
+		return nil
 	}
 }
 
-func (c *Client) readData(conn *websocket.Conn, done chan struct{}) {
+func (c *Client) sendInitPayload() error {
+	initPayload := payload.PrepareInitPayload(c.token)
+
+	jsonData, err := json.Marshal(initPayload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload: %w", err)
+	}
+
+	if err := c.conn.WriteMessage(websocket.TextMessage, jsonData); err != nil {
+		return fmt.Errorf("failed to send payload: %w", err)
+	}
+
+	return nil
+}
+
+func (c *Client) readMessages(done chan struct{}) {
 	defer close(done)
 	for {
-		_, message, err := conn.ReadMessage()
+		_, message, err := c.conn.ReadMessage()
 		if err != nil {
-			log.Printf("Read error: %v", err)
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+				log.Println("Connection closed normally")
+			} else {
+				log.Printf("Read error: %v", err)
+			}
 			return
 		}
-		log.Println("New message:")
 		log.Println(string(message))
 	}
 }

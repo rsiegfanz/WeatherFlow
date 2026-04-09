@@ -27,25 +27,25 @@ func Authenticate() (string, error) {
 
 	jsonPayload, err := json.Marshal(loginRequest)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal login request: %v", err)
+		return "", fmt.Errorf("failed to marshal login request: %w", err)
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %v", err)
+		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to send request: %v", err)
+		return "", fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to read response body: %v", err)
+		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -55,7 +55,7 @@ func Authenticate() (string, error) {
 	var authResp authResponse
 	err = json.Unmarshal(body, &authResp)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse authentication response: %v", err)
+		return "", fmt.Errorf("failed to parse authentication response: %w", err)
 	}
 
 	return authResp.Token, nil

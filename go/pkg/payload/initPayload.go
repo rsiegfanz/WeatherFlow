@@ -77,15 +77,10 @@ type LatestValue struct {
 }
 
 func PrepareInitPayload(token string) InitPayload {
-	payload := InitPayload{
-		AuthCmd: AuthCmd{
-			CmdID: 0,
-			Token: token,
-		},
+	return InitPayload{
+		AuthCmd:  AuthCmd{Token: token},
 		Commands: prepareCommands(),
 	}
-
-	return payload
 }
 
 func prepareCommands() []Command {
