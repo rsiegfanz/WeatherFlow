@@ -7,6 +7,17 @@
         Background="{StaticResource BgBrush}"
         WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <Style x:Key="ClickableCard" TargetType="Border" BasedOn="{StaticResource CardStyle}">
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#333348" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -41,10 +52,10 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Temperature (hero card) -->
-            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+            <!-- Temperature -->
+            <Border Grid.Column="0" Style="{StaticResource ClickableCard}" MouseLeftButtonDown="OnTempClick">
                 <StackPanel>
-                    <TextBlock Text="Temperatur" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="Temperatur ›" Style="{StaticResource SectionTitle}" />
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding Temperature}" Style="{StaticResource BigValueStyle}" />
                         <TextBlock Text="°C" Foreground="{StaticResource DimTextBrush}" FontSize="18"
@@ -54,9 +65,9 @@
             </Border>
 
             <!-- Wind -->
-            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+            <Border Grid.Column="1" Style="{StaticResource ClickableCard}" MouseLeftButtonDown="OnWindClick">
                 <StackPanel>
-                    <TextBlock Text="Wind" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="Wind ›" Style="{StaticResource SectionTitle}" />
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding WindSpeed}" Style="{StaticResource BigValueStyle}" />
                         <TextBlock Text="m/s" Foreground="{StaticResource DimTextBrush}" FontSize="14"
@@ -80,13 +91,17 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" /><ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Feuchte" Style="{StaticResource LabelStyle}" Margin="0,0,12,6" />
-                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Feuchte ›" Style="{StaticResource LabelStyle}"
+                                   Margin="0,0,12,6" Cursor="Hand" MouseLeftButtonDown="OnHumidityClick" />
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
+                                    Cursor="Hand" MouseLeftButtonDown="OnHumidityClick">
                             <TextBlock Text="{Binding Humidity}" Style="{StaticResource ValueStyle}" />
                             <TextBlock Text=" %" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" />
                         </StackPanel>
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Druck" Style="{StaticResource LabelStyle}" Margin="0,0,12,0" />
-                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Druck ›" Style="{StaticResource LabelStyle}"
+                                   Margin="0,0,12,0" Cursor="Hand" MouseLeftButtonDown="OnPressureClick" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
+                                    Cursor="Hand" MouseLeftButtonDown="OnPressureClick">
                             <TextBlock Text="{Binding Pressure}" Style="{StaticResource ValueStyle}" />
                             <TextBlock Text=" hPa" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" />
                         </StackPanel>
@@ -105,20 +120,28 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" /><ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="UV" Style="{StaticResource LabelStyle}" Margin="0,0,12,4" />
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding UvIndex}" Style="{StaticResource ValueStyle}" FontSize="15" />
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Regen" Style="{StaticResource LabelStyle}" Margin="0,0,12,4" />
-                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="UV ›" Style="{StaticResource LabelStyle}"
+                                   Margin="0,0,12,4" Cursor="Hand" MouseLeftButtonDown="OnUvClick" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding UvIndex}" Style="{StaticResource ValueStyle}" FontSize="15"
+                                   Cursor="Hand" MouseLeftButtonDown="OnUvClick" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Regen ›" Style="{StaticResource LabelStyle}"
+                                   Margin="0,0,12,4" Cursor="Hand" MouseLeftButtonDown="OnRainClick" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
+                                    Cursor="Hand" MouseLeftButtonDown="OnRainClick">
                             <TextBlock Text="{Binding Rain}" Style="{StaticResource ValueStyle}" FontSize="15" />
                             <TextBlock Text=" mm" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" FontSize="11" />
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Licht" Style="{StaticResource LabelStyle}" Margin="0,0,12,4" />
-                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Licht ›" Style="{StaticResource LabelStyle}"
+                                   Margin="0,0,12,4" Cursor="Hand" MouseLeftButtonDown="OnLightClick" />
+                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
+                                    Cursor="Hand" MouseLeftButtonDown="OnLightClick">
                             <TextBlock Text="{Binding Light}" Style="{StaticResource ValueStyle}" FontSize="15" />
                             <TextBlock Text=" lux" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" FontSize="11" />
                         </StackPanel>
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Akku" Style="{StaticResource LabelStyle}" Margin="0,0,12,0" />
-                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Akku ›" Style="{StaticResource LabelStyle}"
+                                   Margin="0,0,12,0" Cursor="Hand" MouseLeftButtonDown="OnBatteryClick" />
+                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal"
+                                    Cursor="Hand" MouseLeftButtonDown="OnBatteryClick">
                             <TextBlock Text="{Binding Battery}" Style="{StaticResource ValueStyle}" FontSize="15" />
                             <TextBlock Text=" %" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" FontSize="11" />
                         </StackPanel>
@@ -130,7 +153,7 @@
         <!-- Water Levels -->
         <Border Grid.Row="2" Style="{StaticResource CardStyle}" Margin="8,8,8,8">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="≋  KREBSBACH-PEGEL" Style="{StaticResource SectionTitle}" />
+                <TextBlock DockPanel.Dock="Top" Text="≋  KREBSBACH-PEGEL  (Klick für Verlauf)" Style="{StaticResource SectionTitle}" />
 
                 <!-- Column Headers -->
                 <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
@@ -148,7 +171,7 @@
                 <ItemsControl ItemsSource="{Binding WaterLevels}" DockPanel.Dock="Top">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid Margin="0,2">
+                            <Grid Margin="0,2" Cursor="Hand" MouseLeftButtonDown="OnWaterLevelClick">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="80" />

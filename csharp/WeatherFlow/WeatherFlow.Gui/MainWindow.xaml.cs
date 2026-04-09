@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using WeatherFlow.Auth;
 using WeatherFlow.Gui.ViewModels;
 using WeatherFlow.Thingsboard;
@@ -19,6 +20,41 @@ public partial class MainWindow : Window
         DataContext = _vm;
         Loaded += OnLoaded;
         Closed += (_, _) => _cts?.Cancel();
+    }
+
+    private void OpenChart(string sensorKey)
+    {
+        if (!DashboardViewModel.SensorInfo.TryGetValue(sensorKey, out var info)) return;
+        var data = _vm.History.GetSeries(sensorKey);
+        if (data.Count < 2) return;
+
+        var chart = new ChartWindow(info.Label, info.Unit, data) { Owner = this };
+        chart.Show();
+    }
+
+    private void OpenWaterChart(string name)
+    {
+        var key = $"water:{name}";
+        var data = _vm.History.GetSeries(key);
+        if (data.Count < 2) return;
+
+        var chart = new ChartWindow($"Pegel — {name}", "mm", data) { Owner = this };
+        chart.Show();
+    }
+
+    private void OnTempClick(object s, MouseButtonEventArgs e) => OpenChart("airTemperature");
+    private void OnWindClick(object s, MouseButtonEventArgs e) => OpenChart("windSpeed");
+    private void OnHumidityClick(object s, MouseButtonEventArgs e) => OpenChart("airHumidity");
+    private void OnPressureClick(object s, MouseButtonEventArgs e) => OpenChart("barometricPressure");
+    private void OnUvClick(object s, MouseButtonEventArgs e) => OpenChart("uvIndex");
+    private void OnRainClick(object s, MouseButtonEventArgs e) => OpenChart("rainGauge");
+    private void OnLightClick(object s, MouseButtonEventArgs e) => OpenChart("lightIntensity");
+    private void OnBatteryClick(object s, MouseButtonEventArgs e) => OpenChart("battery");
+
+    private void OnWaterLevelClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement el && el.DataContext is WaterLevelItem item)
+            OpenWaterChart(item.Name);
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)

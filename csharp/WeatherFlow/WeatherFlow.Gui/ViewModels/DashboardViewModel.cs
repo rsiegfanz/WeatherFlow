@@ -52,9 +52,23 @@ public class DashboardViewModel : INotifyPropertyChanged
     public Brush AlarmBrush => _alarmCount == 0 ? new SolidColorBrush(Color.FromRgb(166, 227, 161)) : new SolidColorBrush(Color.FromRgb(243, 139, 168));
 
     public ObservableCollection<WaterLevelItem> WaterLevels { get; } = new();
+    public HistoryStore History { get; } = new();
 
     private static readonly string[] WindDirs =
         ["N", "NNO", "NO", "ONO", "O", "OSO", "SO", "SSO", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+
+    public static readonly Dictionary<string, (string Label, string Unit)> SensorInfo = new()
+    {
+        ["airTemperature"] = ("Temperatur", "°C"),
+        ["airHumidity"] = ("Luftfeuchte", "%"),
+        ["barometricPressure"] = ("Luftdruck", "hPa"),
+        ["windSpeed"] = ("Windgeschwindigkeit", "m/s"),
+        ["windDirectionSensor"] = ("Windrichtung", "°"),
+        ["rainGauge"] = ("Regenmenge", "mm"),
+        ["uvIndex"] = ("UV-Index", ""),
+        ["lightIntensity"] = ("Lichtintensität", "lux"),
+        ["battery"] = ("Batterie", "%"),
+    };
 
     public void ProcessMessage(WsMessage msg, ThingsBoardClient client)
     {
@@ -91,6 +105,15 @@ public class DashboardViewModel : INotifyPropertyChanged
             if (ts.TryGetValue("uvIndex", out var uv)) UvIndex = uv.Value;
             if (ts.TryGetValue("lightIntensity", out var li)) Light = FormatNumber(li.Value);
             if (ts.TryGetValue("battery", out var b)) Battery = b.Value;
+
+            // Record history for all sensors
+            foreach (var (key, val) in ts)
+            {
+                if (key == "barometricPressure" && double.TryParse(val.Value, out var paVal))
+                    History.Record(key, val.Ts, $"{paVal / 100:F1}");
+                else
+                    History.Record(key, val.Ts, val.Value);
+            }
 
             LastUpdate = DateTimeOffset.FromUnixTimeMilliseconds(t?.Ts ?? ts.Values.First().Ts)
                 .LocalDateTime.ToString("HH:mm:ss");
@@ -140,6 +163,8 @@ public class DashboardViewModel : INotifyPropertyChanged
 
             if (!double.TryParse(wl.Value, out var mm)) continue;
             var time = DateTimeOffset.FromUnixTimeMilliseconds(wl.Ts).LocalDateTime.ToString("HH:mm:ss");
+
+            History.Record($"water:{shortName}", wl.Ts, wl.Value);
 
             var existing = WaterLevels.FirstOrDefault(w => w.Name == shortName);
             if (existing != null)
