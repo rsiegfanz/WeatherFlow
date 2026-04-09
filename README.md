@@ -93,17 +93,50 @@ Stop with `Ctrl+C`.
 | 3 | WebSocket connection failed |
 | 4 | Log file setup failed |
 
+## C# Dashboard (Visual)
+
+The C# version is a live-updating terminal dashboard that redraws in-place.
+
+### Build & Run
+
+```bash
+cd csharp/WeatherFlow
+
+# Build for current platform
+dotnet build
+
+# Run
+dotnet run --project WeatherFlow -- --public-id d58b18a0-1440-11ef-aef4-af283e5094d9
+
+# Publish as single-file binary
+dotnet publish WeatherFlow -c Release -r linux-arm64 --self-contained -p:PublishSingleFile=true
+dotnet publish WeatherFlow -c Release -r linux-arm -p:PublishSingleFile=true    # Pi Zero/1/2
+dotnet publish WeatherFlow -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true
+dotnet publish WeatherFlow -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+dotnet publish WeatherFlow -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true
+```
+
+Requires .NET 9.0 SDK for building. Published binaries are self-contained (no runtime needed on target).
+
 ## Project Structure
 
 ```
-go/
-  cmd/main.go              Entry point
-  pkg/auth/auth.go         ThingsBoard public auth (HTTP POST)
-  pkg/client/client.go     WebSocket client, message reader
-  pkg/payload/             WebSocket subscription payload structs
+go/                               CLI tool with raw JSON + optional pretty output
+  cmd/main.go                     Entry point, CLI flags, logging setup
+  pkg/auth/auth.go                ThingsBoard public auth (HTTP POST)
+  pkg/client/client.go            WebSocket client, entity name mapping
+  pkg/client/formatter.go         Pretty terminal formatter
+  pkg/payload/                    WebSocket subscription payload structs
+
+csharp/WeatherFlow/WeatherFlow/   Live dashboard with in-place redraw
+  Program.cs                      Entry point, CLI args
+  Dashboard.cs                    Terminal dashboard renderer
+  Auth/                           Authentication
+  Thingsboard/                    WebSocket client, DTOs, request builder
 ```
 
 ## Requirements
 
-- Go 1.23+
+- **Go version**: Go 1.23+
+- **C# version**: .NET 9.0 SDK (build only; published binaries are self-contained)
 - Network access to `thingsboard.bda-itnovum.com`

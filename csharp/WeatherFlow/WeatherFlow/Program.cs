@@ -1,54 +1,59 @@
-﻿using WeatherFlow.Auth;
+using WeatherFlow.Auth;
 using WeatherFlow.Thingsboard;
 
 namespace WeatherFlow;
 
 class Program
 {
-    private static async Task Main()
+    private static async Task<int> Main(string[] args)
     {
-        using (var cts = new CancellationTokenSource())
+        var publicId = GetArg(args, "--public-id");
+        if (string.IsNullOrEmpty(publicId))
         {
-            var cancellationTask = Task.Run(() =>
-            {
-                Console.WriteLine("Press 'q' to terminate program");
-                while (true)
-                {
-                    if (Console.ReadKey(true).Key == ConsoleKey.Q)
-                    {
-                        cts.Cancel();
-                        break;
-                    }
-                }
-            }, cts.Token);
-
-            try
-            {
-                var authService = new AuthService();
-                var response = await authService.Login();
-
-                var permissions = await authService.Permissions(response.Token);
-
-                var client = new ThingsBoardClient(response.Token, "26945210-05ec-11ef-ac80-dde635ebcdb2");
-                var dataStream = await client.StartDataStream(cts.Token);
-
-                await foreach (var data in dataStream.WithCancellation(cts.Token))
-                {
-                    if (data == null)
-                    {
-                        continue;
-                    }
-                    Console.WriteLine($"Temperature: {data.Temperature}");
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                Console.WriteLine("program terminated");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Exception: {e.Message}");
-            }
+            Console.Error.WriteLine("Usage: weatherflow --public-id <ID>");
+            Console.Error.WriteLine();
+            Console.Error.WriteLine("Example:");
+            Console.Error.WriteLine("  weatherflow --public-id d58b18a0-1440-11ef-aef4-af283e5094d9");
+            return 1;
         }
+
+        using var cts = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
+
+        try
+        {
+            var token = await AuthService.Authenticate(publicId);
+
+            using var client = new ThingsBoardClient(token);
+            var dashboard = new Dashboard(client);
+
+            Console.Clear();
+            Console.CursorVisible = false;
+
+            await client.RunAsync(dashboard.HandleMessage, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            Console.CursorVisible = true;
+            Console.WriteLine("\nBeendet.");
+        }
+        catch (AuthException ex)
+        {
+            Console.Error.WriteLine($"Authentication error: {ex.Message}");
+            return 2;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error: {ex.Message}");
+            return 3;
+        }
+
+        return 0;
+    }
+
+    private static string? GetArg(string[] args, string name)
+    {
+        var idx = Array.IndexOf(args, name);
+        return idx >= 0 && idx + 1 < args.Length ? args[idx + 1] : null;
     }
 }
