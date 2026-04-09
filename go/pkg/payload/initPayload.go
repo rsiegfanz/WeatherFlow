@@ -13,16 +13,22 @@ type AuthCmd struct {
 }
 
 type Command struct {
-	Type         string        `json:"type"`
-	Query        Query         `json:"query"`
-	EntityFields []EntityField `json:"entityFields,omitempty"`
-	LatestValues []LatestValue `json:"latestValues,omitempty"`
-	CmdID        int           `json:"cmdId"`
+	Type      string     `json:"type"`
+	Query     Query      `json:"query"`
+	LatestCmd *LatestCmd `json:"latestCmd,omitempty"`
+	CmdID     int        `json:"cmdId"`
+}
+
+type LatestCmd struct {
+	Keys []LatestValue `json:"keys"`
 }
 
 type Query struct {
-	EntityFilter EntityFilter `json:"entityFilter"`
-	PageLink     PageLink     `json:"pageLink"`
+	EntityFilter EntityFilter  `json:"entityFilter"`
+	PageLink     PageLink      `json:"pageLink"`
+	EntityFields []EntityField `json:"entityFields,omitempty"`
+	LatestValues []LatestValue `json:"latestValues,omitempty"`
+	AlarmFields  []EntityField `json:"alarmFields,omitempty"`
 }
 
 type EntityFilter struct {
@@ -83,357 +89,101 @@ func PrepareInitPayload(token string) InitPayload {
 }
 
 func prepareCommands() []Command {
-	return []Command{
-		// Command 1: Air Temperature
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
+	defaultEntityFields := []EntityField{
+		{Type: "ENTITY_FIELD", Key: "name"},
+		{Type: "ENTITY_FIELD", Key: "label"},
+		{Type: "ENTITY_FIELD", Key: "additionalInfo"},
+	}
+
+	deviceFilter := EntityFilter{
+		Type: "singleEntity",
+		SingleEntity: &SingleEntity{
+			ID:         deviceID,
+			EntityType: "DEVICE",
+		},
+	}
+
+	createdTimeSortOrder := SortOrder{
+		Key: struct {
+			Type string `json:"type"`
+			Key  string `json:"key"`
+		}{Type: "ENTITY_FIELD", Key: "createdTime"},
+		Direction: "DESC",
+	}
+
+	cmds := []Command{
+		// Command 1: All weather telemetry in one subscription
+		{Type: "ENTITY_DATA", CmdID: 1, Query: Query{
+			EntityFilter: deviceFilter,
+			PageLink:     PageLink{PageSize: 1, SortOrder: createdTimeSortOrder},
+			EntityFields: defaultEntityFields,
 			LatestValues: []LatestValue{
 				{Type: "TIME_SERIES", Key: "airTemperature"},
-			},
-			CmdID: 1,
-		},
-		// Command 2: Wind Speed
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{
+				{Type: "TIME_SERIES", Key: "airHumidity"},
+				{Type: "TIME_SERIES", Key: "barometricPressure"},
 				{Type: "TIME_SERIES", Key: "windSpeed"},
-			},
-			CmdID: 2,
-		},
-		// Command 3: Rain Gauge
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{
-				{Type: "TIME_SERIES", Key: "rainGauge"},
-			},
-			CmdID: 3,
-		},
-		// Command 4-8: Empty Latest Values
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1024,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{},
-			CmdID:        4,
-		},
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1024,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{},
-			CmdID:        5,
-		},
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1024,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{},
-			CmdID:        6,
-		},
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1024,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{},
-			CmdID:        7,
-		},
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1024,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{},
-			CmdID:        8,
-		},
-		// Command 9: Wind Direction and Wind Speed
-		{
-			Type: "ENTITY_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type: "singleEntity",
-					SingleEntity: &SingleEntity{
-						ID:         generateDeviceId(),
-						EntityType: "DEVICE",
-					},
-				},
-				PageLink: PageLink{
-					PageSize: 1,
-					Page:     0,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ENTITY_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-				},
-			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{
 				{Type: "TIME_SERIES", Key: "windDirectionSensor"},
-				{Type: "TIME_SERIES", Key: "windSpeed"},
+				{Type: "TIME_SERIES", Key: "rainGauge"},
+				{Type: "TIME_SERIES", Key: "uvIndex"},
+				{Type: "TIME_SERIES", Key: "lightIntensity"},
+				{Type: "TIME_SERIES", Key: "battery"},
 			},
-			CmdID: 9,
-		},
-		// Command 10: Alarm Data
-		{
-			Type: "ALARM_DATA",
-			Query: Query{
-				EntityFilter: EntityFilter{
-					Type:             "deviceType",
-					ResolveMultiple:  true,
-					DeviceTypes:      []string{"Dragino LDDS Water Level"},
-					DeviceNameFilter: "",
+		}},
+		// Command 2: Device attributes (location, firmware, etc.)
+		{Type: "ENTITY_DATA", CmdID: 2, Query: Query{
+			EntityFilter: deviceFilter,
+			PageLink:     PageLink{PageSize: 1, SortOrder: createdTimeSortOrder},
+			EntityFields: defaultEntityFields,
+			LatestValues: []LatestValue{
+				{Type: "ATTRIBUTE", Key: "latitude"},
+				{Type: "ATTRIBUTE", Key: "longitude"},
+				{Type: "ATTRIBUTE", Key: "altitude"},
+				{Type: "ATTRIBUTE", Key: "firmwareVersion"},
+				{Type: "ATTRIBUTE", Key: "hardwareVersion"},
+				{Type: "ATTRIBUTE", Key: "active"},
+			},
+		}},
+	}
+
+	cmds = append(cmds,
+		// Command 10: Active alarms for water level sensors
+		Command{Type: "ALARM_DATA", CmdID: 10, Query: Query{
+			EntityFilter: EntityFilter{
+				Type:             "deviceType",
+				ResolveMultiple:  true,
+				DeviceTypes:      []string{"Dragino LDDS Water Level"},
+				DeviceNameFilter: "",
+			},
+			PageLink: PageLink{
+				PageSize: 1024,
+				SortOrder: SortOrder{
+					Key: struct {
+						Type string `json:"type"`
+						Key  string `json:"key"`
+					}{Type: "ALARM_FIELD", Key: "createdTime"},
+					Direction: "DESC",
 				},
-				PageLink: PageLink{
-					Page:     0,
-					PageSize: 1024,
-					SortOrder: SortOrder{
-						Key: struct {
-							Type string `json:"type"`
-							Key  string `json:"key"`
-						}{
-							Type: "ALARM_FIELD",
-							Key:  "createdTime",
-						},
-						Direction: "DESC",
-					},
-					TextSearch:             nil,
-					TypeList:               []string{},
-					SeverityList:           []string{},
-					StatusList:             []string{"ACTIVE"},
-					SearchPropagatedAlarms: false,
-					AssigneeID:             nil,
-					TimeWindow:             604800000,
-				},
+				TypeList:               []string{},
+				SeverityList:           []string{},
+				StatusList:             []string{"ACTIVE"},
+				SearchPropagatedAlarms: false,
+				TimeWindow:             604800000,
+			},
+			AlarmFields: []EntityField{
+				{Type: "ALARM_FIELD", Key: "originatorLabel"},
+				{Type: "ALARM_FIELD", Key: "createdTime"},
+				{Type: "ALARM_FIELD", Key: "type"},
+				{Type: "ALARM_FIELD", Key: "severity"},
 			},
 			EntityFields: []EntityField{},
 			LatestValues: []LatestValue{},
-			CmdID:        10,
-		},
-		// Command 11: Entity Data for Water Level
-		{
-			Type: "ENTITY_DATA",
+		}},
+		// Command 11: Water level devices
+		Command{Type: "ENTITY_DATA", CmdID: 11,
+			LatestCmd: &LatestCmd{Keys: []LatestValue{
+				{Type: "ATTRIBUTE", Key: "displayName"},
+				{Type: "TIME_SERIES", Key: "waterLevel"},
+			}},
 			Query: Query{
 				EntityFilter: EntityFilter{
 					Type:             "deviceType",
@@ -442,36 +192,24 @@ func prepareCommands() []Command {
 					DeviceNameFilter: "",
 				},
 				PageLink: PageLink{
-					Page:     0,
 					PageSize: 1024,
 					SortOrder: SortOrder{
 						Key: struct {
 							Type string `json:"type"`
 							Key  string `json:"key"`
-						}{
-							Type: "ATTRIBUTE",
-							Key:  "displayName",
-						},
+						}{Type: "ATTRIBUTE", Key: "displayName"},
 						Direction: "ASC",
 					},
-					TextSearch: nil,
-					Dynamic:    true,
+					Dynamic: true,
+				},
+				EntityFields: defaultEntityFields,
+				LatestValues: []LatestValue{
+					{Type: "ATTRIBUTE", Key: "displayName"},
+					{Type: "TIME_SERIES", Key: "waterLevel"},
 				},
 			},
-			EntityFields: []EntityField{
-				{Type: "ENTITY_FIELD", Key: "name"},
-				{Type: "ENTITY_FIELD", Key: "label"},
-				{Type: "ENTITY_FIELD", Key: "additionalInfo"},
-			},
-			LatestValues: []LatestValue{
-				{Type: "ATTRIBUTE", Key: "displayName"},
-				{Type: "TIME_SERIES", Key: "waterLevel"},
-			},
-			CmdID: 11,
 		},
-	}
-}
+	)
 
-func generateDeviceId() string {
-	return deviceID
+	return cmds
 }
