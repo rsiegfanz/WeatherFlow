@@ -26,7 +26,14 @@ public partial class MainWindow : Window
     {
         if (!DashboardViewModel.SensorInfo.TryGetValue(sensorKey, out var info)) return;
         var data = _vm.History.GetSeries(sensorKey);
-        if (data.Count < 2) return;
+
+        if (data.Count < 2)
+        {
+            MessageBox.Show(
+                $"Noch nicht genug Daten für \"{info.Label}\".\n\nWetter-Updates kommen ca. alle 5 Minuten — bitte kurz warten.",
+                "Noch keine Verlaufsdaten", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
 
         var chart = new ChartWindow(info.Label, info.Unit, data) { Owner = this };
         chart.Show();
@@ -36,7 +43,14 @@ public partial class MainWindow : Window
     {
         var key = $"water:{name}";
         var data = _vm.History.GetSeries(key);
-        if (data.Count < 2) return;
+
+        if (data.Count < 2)
+        {
+            MessageBox.Show(
+                $"Noch nicht genug Daten für \"{name}\".\n\nPegel-Updates kommen ca. alle 20 Minuten — bitte kurz warten.",
+                "Noch keine Verlaufsdaten", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
 
         var chart = new ChartWindow($"Pegel — {name}", "mm", data) { Owner = this };
         chart.Show();
