@@ -1,0 +1,195 @@
+<Window x:Class="WeatherFlow.Gui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WeatherFlow Dashboard"
+        Width="920" Height="720"
+        MinWidth="800" MinHeight="600"
+        Background="{StaticResource BgBrush}"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="20,14">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="☀" FontSize="22" Foreground="{StaticResource CyanBrush}" Margin="0,0,10,0" />
+                    <TextBlock Text="WEATHERFLOW" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                    <TextBlock Text="{Binding Location}" Foreground="{StaticResource DimTextBrush}" FontSize="12"
+                               Margin="20,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" Fill="{Binding StatusColor}" Margin="0,0,6,0" />
+                    <TextBlock Text="{Binding Status}" Foreground="{StaticResource DimTextBrush}" FontSize="12" />
+                    <TextBlock Text="{Binding LastUpdate, StringFormat='  |  {0}'}" Foreground="{StaticResource DimTextBrush}" FontSize="12" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Weather Cards -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Temperature (hero card) -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Temperatur" Style="{StaticResource SectionTitle}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Temperature}" Style="{StaticResource BigValueStyle}" />
+                        <TextBlock Text="°C" Foreground="{StaticResource DimTextBrush}" FontSize="18"
+                                   VerticalAlignment="Top" Margin="2,6,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Wind -->
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Wind" Style="{StaticResource SectionTitle}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding WindSpeed}" Style="{StaticResource BigValueStyle}" />
+                        <TextBlock Text="m/s" Foreground="{StaticResource DimTextBrush}" FontSize="14"
+                                   VerticalAlignment="Bottom" Margin="4,0,0,6" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Text="{Binding WindDirection}" Foreground="{StaticResource DimTextBrush}" FontSize="13" />
+                        <TextBlock Text="{Binding WindDirLabel, StringFormat='° ({0})'}" Foreground="{StaticResource CyanBrush}" FontSize="13" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Humidity + Pressure -->
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Atmosphäre" Style="{StaticResource SectionTitle}" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition /><RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" /><ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Feuchte" Style="{StaticResource LabelStyle}" Margin="0,0,12,6" />
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                            <TextBlock Text="{Binding Humidity}" Style="{StaticResource ValueStyle}" />
+                            <TextBlock Text=" %" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Druck" Style="{StaticResource LabelStyle}" Margin="0,0,12,0" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                            <TextBlock Text="{Binding Pressure}" Style="{StaticResource ValueStyle}" />
+                            <TextBlock Text=" hPa" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- UV + Rain + Light + Battery -->
+            <Border Grid.Column="3" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Weitere Sensoren" Style="{StaticResource SectionTitle}" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" /><ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="UV" Style="{StaticResource LabelStyle}" Margin="0,0,12,4" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding UvIndex}" Style="{StaticResource ValueStyle}" FontSize="15" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Regen" Style="{StaticResource LabelStyle}" Margin="0,0,12,4" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                            <TextBlock Text="{Binding Rain}" Style="{StaticResource ValueStyle}" FontSize="15" />
+                            <TextBlock Text=" mm" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" FontSize="11" />
+                        </StackPanel>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Licht" Style="{StaticResource LabelStyle}" Margin="0,0,12,4" />
+                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                            <TextBlock Text="{Binding Light}" Style="{StaticResource ValueStyle}" FontSize="15" />
+                            <TextBlock Text=" lux" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" FontSize="11" />
+                        </StackPanel>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Akku" Style="{StaticResource LabelStyle}" Margin="0,0,12,0" />
+                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                            <TextBlock Text="{Binding Battery}" Style="{StaticResource ValueStyle}" FontSize="15" />
+                            <TextBlock Text=" %" Foreground="{StaticResource DimTextBrush}" VerticalAlignment="Center" FontSize="11" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Water Levels -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Margin="8,8,8,8">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="≋  KREBSBACH-PEGEL" Style="{StaticResource SectionTitle}" />
+
+                <!-- Column Headers -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="70" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Standort" Foreground="{StaticResource DimTextBrush}" FontSize="11" />
+                    <TextBlock Grid.Column="1" Text="mm" Foreground="{StaticResource DimTextBrush}" FontSize="11" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="3" Text="Zeit" Foreground="{StaticResource DimTextBrush}" FontSize="11" HorizontalAlignment="Right" />
+                </Grid>
+
+                <ItemsControl ItemsSource="{Binding WaterLevels}" DockPanel.Dock="Top">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200" />
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="70" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                           Foreground="{StaticResource TextBrush}" FontSize="13"
+                                           VerticalAlignment="Center" />
+
+                                <TextBlock Grid.Column="1" Text="{Binding ValueText}"
+                                           Foreground="{StaticResource TextBrush}" FontSize="13"
+                                           FontWeight="SemiBold" HorizontalAlignment="Right"
+                                           VerticalAlignment="Center" />
+
+                                <Grid Grid.Column="2" Margin="12,0" VerticalAlignment="Center">
+                                    <Border Background="#1A1A2A" CornerRadius="4" Height="16" />
+                                    <Border Background="{Binding BarColor}" CornerRadius="4" Height="16"
+                                            HorizontalAlignment="Left" Width="{Binding BarWidth}" />
+                                </Grid>
+
+                                <TextBlock Grid.Column="3" Text="{Binding Time}"
+                                           Foreground="{StaticResource DimTextBrush}" FontSize="11"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </Border>
+
+        <!-- Footer -->
+        <Border Grid.Row="3" Style="{StaticResource CardStyle}" Padding="20,10">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding AlarmText}" Foreground="{Binding AlarmBrush}" FontSize="12" />
+                </StackPanel>
+                <TextBlock Text="{Binding Firmware}" Foreground="{StaticResource DimTextBrush}" FontSize="11"
+                           HorizontalAlignment="Right" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
