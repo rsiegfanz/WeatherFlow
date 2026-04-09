@@ -8,8 +8,7 @@ import (
 	"net/http"
 )
 
-const url = "https://thingsboard.bda-itnovum.com/api/auth/login/public"
-const publicID = "d58b18a0-1440-11ef-aef4-af283e5094d9"
+const authURL = "https://thingsboard.bda-itnovum.com/api/auth/login/public"
 
 type loginRequest struct {
 	PublicID string `json:"publicId"`
@@ -20,7 +19,7 @@ type authResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-func Authenticate() (string, error) {
+func Authenticate(publicID string) (string, error) {
 	loginRequest := loginRequest{
 		PublicID: publicID,
 	}
@@ -30,7 +29,7 @@ func Authenticate() (string, error) {
 		return "", fmt.Errorf("failed to marshal login request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+	req, err := http.NewRequest("POST", authURL, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}

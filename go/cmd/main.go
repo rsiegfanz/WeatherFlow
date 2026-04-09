@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/rsiegfanz/WeatherFlow/pkg/auth"
@@ -8,7 +9,14 @@ import (
 )
 
 func main() {
-	token, err := auth.Authenticate()
+	publicID := flag.String("public-id", "", "ThingsBoard public customer ID (required)")
+	flag.Parse()
+
+	if *publicID == "" {
+		log.Fatal("Missing required flag: -public-id")
+	}
+
+	token, err := auth.Authenticate(*publicID)
 	if err != nil {
 		log.Fatalf("Authentication error: %v", err)
 	}
