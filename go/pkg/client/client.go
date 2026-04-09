@@ -18,15 +18,17 @@ type Client struct {
 	token     string
 	conn      *websocket.Conn
 	msgLogger *log.Logger
+	pretty    bool
 
 	mu          sync.RWMutex
 	entityNames map[string]string // entityId -> displayName
 }
 
-func New(token string, msgLogger *log.Logger) *Client {
+func New(token string, msgLogger *log.Logger, pretty bool) *Client {
 	return &Client{
 		token:       token,
 		msgLogger:   msgLogger,
+		pretty:      pretty,
 		entityNames: make(map[string]string),
 	}
 }
@@ -97,6 +99,10 @@ func (c *Client) readMessages(done chan struct{}) {
 
 		enriched := c.enrichMessage(raw)
 		c.msgLogger.Println(string(enriched))
+
+		if c.pretty {
+			c.prettyPrint(raw)
+		}
 	}
 }
 

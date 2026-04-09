@@ -21,7 +21,7 @@ const (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: weatherflow -public-id <ID> [-output <file>] [-error-log <file>]\n\n")
+		fmt.Fprintf(os.Stderr, "Usage: weatherflow -public-id <ID> [-pretty] [-output <file>] [-error-log <file>]\n\n")
 		fmt.Fprintf(os.Stderr, "Streams real-time weather and water level data from ThingsBoard.\n\n")
 		fmt.Fprintf(os.Stderr, "Flags:\n")
 		flag.PrintDefaults()
@@ -31,6 +31,7 @@ func main() {
 	}
 
 	publicID := flag.String("public-id", "", "ThingsBoard public customer ID (required)")
+	pretty := flag.Bool("pretty", false, "formatted terminal output instead of raw JSON")
 	outputFile := flag.String("output", "weatherflow.log", "output file for messages (use - for stdout only)")
 	errorLogFile := flag.String("error-log", "weatherflow-errors.log", "error log file")
 	flag.Parse()
@@ -47,7 +48,7 @@ func main() {
 	}
 	defer errorLog.Close()
 
-	msgLogger, outputCloser, err := setupOutputLog(*outputFile)
+	msgLogger, outputCloser, err := setupOutputLog(*outputFile, *pretty)
 	if err != nil {
 		log.Fatalf("Failed to open output file: %v", err)
 	}
@@ -60,7 +61,7 @@ func main() {
 		log.Fatalf("Authentication error (exit %d): %v", exitAuth, err)
 	}
 
-	c := client.New(token, msgLogger)
+	c := client.New(token, msgLogger, *pretty)
 	defer c.Close()
 
 	if err := c.Connect(); err != nil {
@@ -79,8 +80,11 @@ func setupErrorLog(path string) (*os.File, error) {
 	return f, nil
 }
 
-func setupOutputLog(path string) (*log.Logger, *os.File, error) {
+func setupOutputLog(path string, pretty bool) (*log.Logger, *os.File, error) {
 	if path == "-" {
+		if pretty {
+			return log.New(io.Discard, "", 0), nil, nil
+		}
 		return log.New(os.Stdout, "", log.LstdFlags), nil, nil
 	}
 
@@ -89,7 +93,12 @@ func setupOutputLog(path string) (*log.Logger, *os.File, error) {
 		return nil, nil, err
 	}
 
-	// Messages go to both stdout and the output file
+	if pretty {
+		// Pretty mode: raw JSON only to file, formatted output to terminal separately
+		return log.New(f, "", log.LstdFlags), f, nil
+	}
+
+	// Normal mode: raw JSON to both stdout and file
 	w := io.MultiWriter(os.Stdout, f)
 	return log.New(w, "", log.LstdFlags), f, nil
 }
