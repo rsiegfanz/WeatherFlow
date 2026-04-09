@@ -5,23 +5,18 @@ namespace WeatherFlow;
 
 class Program
 {
+    private const string DefaultPublicId = "d58b18a0-1440-11ef-aef4-af283e5094d9";
+
     private static async Task<int> Main(string[] args)
     {
-        var publicId = GetArg(args, "--public-id");
-        if (string.IsNullOrEmpty(publicId))
-        {
-            Console.Error.WriteLine("Usage: weatherflow --public-id <ID>");
-            Console.Error.WriteLine();
-            Console.Error.WriteLine("Example:");
-            Console.Error.WriteLine("  weatherflow --public-id d58b18a0-1440-11ef-aef4-af283e5094d9");
-            return 1;
-        }
+        var publicId = GetArg(args, "--public-id") ?? PromptForPublicId();
 
         using var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
         try
         {
+            Console.WriteLine("Verbinde...");
             var token = await AuthService.Authenticate(publicId);
 
             using var client = new ThingsBoardClient(token);
@@ -49,6 +44,19 @@ class Program
         }
 
         return 0;
+    }
+
+    private static string PromptForPublicId()
+    {
+        Console.WriteLine("╔══════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║  WEATHERFLOW                                           ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════╝");
+        Console.WriteLine();
+        Console.WriteLine($"  ThingsBoard Public ID [{DefaultPublicId}]:");
+        Console.Write("  > ");
+
+        var input = Console.ReadLine()?.Trim();
+        return string.IsNullOrEmpty(input) ? DefaultPublicId : input;
     }
 
     private static string? GetArg(string[] args, string name)
