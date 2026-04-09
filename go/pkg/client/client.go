@@ -14,12 +14,13 @@ import (
 const wsURL = "wss://thingsboard.bda-itnovum.com/api/ws"
 
 type Client struct {
-	token string
-	conn  *websocket.Conn
+	token     string
+	conn      *websocket.Conn
+	msgLogger *log.Logger
 }
 
-func New(token string) *Client {
-	return &Client{token: token}
+func New(token string, msgLogger *log.Logger) *Client {
+	return &Client{token: token, msgLogger: msgLogger}
 }
 
 func (c *Client) Close() {
@@ -85,6 +86,6 @@ func (c *Client) readMessages(done chan struct{}) {
 			}
 			return
 		}
-		log.Println(string(message))
+		c.msgLogger.Println(string(message))
 	}
 }

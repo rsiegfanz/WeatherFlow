@@ -29,13 +29,39 @@ The current public ID for the BDA/itnovum ThingsBoard instance:
 d58b18a0-1440-11ef-aef4-af283e5094d9
 ```
 
-Example:
+### Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-public-id` | (required) | ThingsBoard public customer ID |
+| `-output` | `weatherflow.log` | Output file for messages (use `-` for stdout only) |
+| `-error-log` | `weatherflow-errors.log` | Error log file |
+| `-help` | | Show usage |
+
+### Examples
 
 ```bash
+# Basic: output to terminal + weatherflow.log, errors to weatherflow-errors.log
 ./weatherflow -public-id d58b18a0-1440-11ef-aef4-af283e5094d9
+
+# Custom file paths
+./weatherflow -public-id d58b18a0-1440-11ef-aef4-af283e5094d9 -output data.log -error-log errors.log
+
+# Terminal only (no output file)
+./weatherflow -public-id d58b18a0-1440-11ef-aef4-af283e5094d9 -output -
 ```
 
 Stop with `Ctrl+C`.
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | OK |
+| 1 | Invalid usage (missing flags) |
+| 2 | Authentication failed |
+| 3 | WebSocket connection failed |
+| 4 | Log file setup failed |
 
 ## Project Structure
 
