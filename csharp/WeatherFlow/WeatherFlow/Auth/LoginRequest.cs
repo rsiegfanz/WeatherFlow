@@ -5,5 +5,5 @@ namespace WeatherFlow.Auth;
 public class LoginRequest
 {
     [JsonPropertyName("publicId")]
-    public string PublicId { get; set; }
+    public required string PublicId { get; set; }
 }
